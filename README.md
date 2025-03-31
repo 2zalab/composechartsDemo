@@ -18,7 +18,7 @@ A demonstration of various chart types implemented with Jetpack Compose for Andr
     <tr>
       <td align="center"><img src="app/src/main/res/raw/pie.png" width="200" alt="Pie Chart"/><br/>Pie Chart</td>
       <td align="center"><img src="app/src/main/res/raw/radar.png" width="200" alt="Radar Chart"/><br/>Radar Chart</td>
-      <td align="center"><img src="app/src/main/res/raw/composechart.mp4" width="200" alt="Demo Video"/><br/>Demo Video</td>
+      <td align="center"><img src="app/src/main/res/raw/composechart.gif" width="200" alt="Demo Video"/><br/>Demo Video</td>
     </tr>
   </table>
 </div>
@@ -386,7 +386,7 @@ The demonstration video below shows the application in action, illustrating:
 - Appearance of different themes and color palettes
   
 <div align="center">
-  <video src="app/src/main/res/raw/composechart.mp4" controls="controls" style="max-width: 730px;">
+  <video src="app/src/main/res/raw/composechart.git" controls="controls" style="max-width: 730px;">
   </video>
 </div>
 
