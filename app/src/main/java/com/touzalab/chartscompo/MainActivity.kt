@@ -3,14 +3,19 @@ package com.touzalab.chartscompo
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -22,15 +27,49 @@ import com.touzalab.composecharts.data.PieChartSegment
 import com.touzalab.composecharts.theme.ChartThemes
 import com.touzalab.composecharts.theme.ColorPalettes
 
+// Définition de nos couleurs de thème vert
+val PrimaryGreen = Color(0xFF2E7D32)
+val LightGreen = Color(0xFF4CAF50)
+val DarkGreen = Color(0xFF1B5E20)
+val BackgroundColor = Color(0xFFF5F9F5)
+val SurfaceColor = Color(0xFFFFFFFF)
+val TextColor = Color(0xFF212121)
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        window.statusBarColor = DarkGreen.toArgb()
         setContent {
-            MaterialTheme {
+            GreenChartTheme {
                 ChartsDemoApp()
             }
         }
     }
+}
+
+@Composable
+fun GreenChartTheme(
+    content: @Composable () -> Unit
+) {
+    val colorScheme = lightColorScheme(
+        primary = PrimaryGreen,
+        onPrimary = Color.White,
+        primaryContainer = LightGreen,
+        onPrimaryContainer = Color.White,
+        secondary = LightGreen,
+        onSecondary = TextColor,
+        background = BackgroundColor,
+        onBackground = TextColor,
+        surface = SurfaceColor,
+        onSurface = TextColor,
+        surfaceVariant = Color(0xFFEDF7ED)
+    )
+
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography = Typography(),
+        content = content
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,43 +78,80 @@ fun ChartsDemoApp() {
     // Type de graphique sélectionné
     var selectedChartType by remember { mutableStateOf(ChartType.LINE) }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        // Barre supérieure avec le titre
-        TopAppBar(
-            title = { Text("ComposeCharts Demo") },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                titleContentColor = Color.White
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        "ComposeCharts Démo",
+                        fontWeight = FontWeight.Bold,
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = PrimaryGreen,
+                    titleContentColor = Color.White
+                )
             )
-        )
-
-        // Menu de sélection du type de graphique
-        ChartTypeSelector(
-            selectedChartType = selectedChartType,
-            onChartTypeSelected = { selectedChartType = it }
-        )
-
-        // Graphique sélectionné
-        Box(
+        }
+    ) { paddingValues ->
+        Column(
             modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState())
+                .fillMaxSize()
+                .padding(paddingValues)
+                .background(BackgroundColor)
         ) {
-            when (selectedChartType) {
-                ChartType.LINE -> LineChartExample()
-                ChartType.BAR -> BarChartExample()
-                ChartType.PIE -> PieChartExample()
-                ChartType.HISTOGRAM -> HistogramExample()
-                ChartType.RADAR -> RadarChartExample()
+            // Menu scrollable de sélection du type de graphique
+            ChartTypeSelector(
+                selectedChartType = selectedChartType,
+                onChartTypeSelected = { selectedChartType = it }
+            )
+
+            // Zone de séparation
+            Spacer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp)
+            )
+
+            // Boîte contenant le graphique
+            Card(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(5.dp),
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = 4.dp
+                ),
+                colors = CardDefaults.cardColors(
+                    containerColor = SurfaceColor
+                ),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        //.padding(5.dp)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    when (selectedChartType) {
+                        ChartType.LINE -> LineChartExample()
+                        ChartType.BAR -> BarChartExample()
+                        ChartType.PIE -> PieChartExample()
+                        ChartType.HISTOGRAM -> HistogramExample()
+                        ChartType.RADAR -> RadarChartExample()
+                    }
+                }
             }
         }
     }
 }
 
-enum class ChartType {
-    LINE, BAR, PIE, HISTOGRAM, RADAR
+enum class ChartType(val displayName: String) {
+    LINE("Linéaire"),
+    BAR("Barres"),
+    PIE("Camembert"),
+    HISTOGRAM("Histogramme"),
+    RADAR("Radar")
 }
 
 @Composable
@@ -83,13 +159,14 @@ fun ChartTypeSelector(
     selectedChartType: ChartType,
     onChartTypeSelected: (ChartType) -> Unit
 ) {
-    Row(
+    LazyRow(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly
+            .padding(vertical = 16.dp, horizontal = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp)
     ) {
-        ChartType.entries.forEach { chartType ->
+        items(ChartType.entries) { chartType ->
             ChartTypeButton(
                 type = chartType,
                 isSelected = chartType == selectedChartType,
@@ -105,15 +182,19 @@ fun ChartTypeButton(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    Button(
+    ElevatedButton(
         onClick = onClick,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-            contentColor = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+        colors = ButtonDefaults.elevatedButtonColors(
+            containerColor = if (isSelected) PrimaryGreen else Color.White,
+            contentColor = if (isSelected) Color.White else PrimaryGreen
         ),
-        modifier = Modifier.padding(horizontal = 4.dp)
+        elevation = ButtonDefaults.elevatedButtonElevation(
+            defaultElevation = if (isSelected) 6.dp else 2.dp
+        ),
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.height(44.dp)
     ) {
-        Text(type.name)
+        Text(type.displayName, fontWeight = FontWeight.Medium)
     }
 }
 
@@ -122,15 +203,7 @@ fun LineChartExample() {
     val salesData = createSalesData()
 
     Column {
-        Text(
-            text = "Évolution des Ventes",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp)
-        )
+        ChartTitleHeader(title = "Évolution des Ventes")
 
         LineChart(
             dataSeries = salesData,
@@ -142,7 +215,7 @@ fun LineChartExample() {
             fillArea = true,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(300.dp)
+                .height(500.dp)
         )
     }
 }
@@ -152,15 +225,7 @@ fun BarChartExample() {
     val salesData = createSalesData()
 
     Column {
-        Text(
-            text = "Comparaison des Ventes",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp)
-        )
+        ChartTitleHeader(title = "Comparaison des Ventes")
 
         BarChart(
             dataSeries = salesData,
@@ -169,11 +234,10 @@ fun BarChartExample() {
             yAxisTitle = "Ventes (K€)",
             stacked = false,
             horizontal = false,
-            //showValue = true,
             style = ChartThemes.Colorful,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(300.dp)
+                .height(600.dp)
         )
     }
 }
@@ -189,15 +253,7 @@ fun PieChartExample() {
     )
 
     Column {
-        Text(
-            text = "Répartition des Ventes",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp)
-        )
+        ChartTitleHeader(title = "Répartition des Ventes")
 
         PieChart(
             segments = segments,
@@ -208,7 +264,8 @@ fun PieChartExample() {
             //explodeSelection = true,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(300.dp)
+                .height(600.dp)
+                .padding(bottom = 16.dp)
         )
     }
 }
@@ -223,27 +280,18 @@ fun HistogramExample() {
     )
 
     Column {
-        Text(
-            text = "Distribution des Âges",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp)
-        )
+        ChartTitleHeader(title = "Distribution des Âges")
 
         Histogram(
             data = ages,
             title = "Âges des clients",
             xAxisTitle = "Âge",
             yAxisTitle = "Fréquence",
-            bins = 8,
-            barColor = ColorPalettes.Vibrant[2],
-            //showValues = true,
+            bins = 10,
+            barColor = ColorPalettes.Vibrant[1],
             modifier = Modifier
                 .fillMaxWidth()
-                .height(300.dp)
+                .height(600.dp)
         )
     }
 }
@@ -279,15 +327,7 @@ fun RadarChartExample() {
     )
 
     Column {
-        Text(
-            text = "Comparaison de Produits",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp)
-        )
+        ChartTitleHeader(title = "Comparaison de Produits")
 
         RadarChart(
             dataSeries = dataSeries,
@@ -295,12 +335,26 @@ fun RadarChartExample() {
             title = "Comparaison des performances",
             fillArea = true,
             showPoints = true,
-            style = ChartThemes.Dark,
+            style = ChartThemes.Colorful,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(350.dp)
+                .height(550.dp)
         )
     }
+}
+
+@Composable
+fun ChartTitleHeader(title: String) {
+    Text(
+        text = title,
+        fontSize = 20.sp,
+        fontWeight = FontWeight.Bold,
+        color = DarkGreen,
+        textAlign = TextAlign.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 16.dp)
+    )
 }
 
 fun createSalesData(): List<DataSeries> {
